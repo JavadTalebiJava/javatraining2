@@ -1,7 +1,12 @@
 package com.vitelco.training.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.Set;
 
 /*
 1. getter and setters
@@ -10,95 +15,53 @@ import java.util.Objects;
 4. toString
 5. Serializable */
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Slf4j
 public class Order {
 
-    //property, state, field = class member
     private long id;
     private LocalDateTime dateTime;
     private float amount;
     private float vat;
+
     private Customer customer;
 
-    //Constructor
-    public Order(long id, LocalDateTime dateTime, float amount, float vat, Customer customer) {
+    private Set<OrderItem> items;
+
+    public Order(long id, Customer customer, Set<OrderItem> items) {
         this.id = id;
-        this.dateTime = dateTime;
-        this.amount = amount;
-        this.vat = vat;
+        this.dateTime = LocalDateTime.now();
         this.customer = customer;
+        this.items = items;
+
+        this.amount = this.calcTotalPrice();
+        this.vat = this.calcTotalVat();
     }
 
-    public Order() {
+    public float calcTotalPrice() {
+        if (this.getItems().size() == 0) {
+            log.warn("There is no order item");
+            return 0f;
+        }
+
+        float total = 0f;
+        for (OrderItem item : this.getItems()) {
+            total += item.getPrice() * item.getQty();
+        }
+        return total;
     }
 
-    public Order(Customer customer) {
-        this.customer = customer;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public float getAmount() {
-        return amount;
-    }
-
-    public void setAmount(float amount) {
-        this.amount = amount;
-    }
-
-    public float getVat() {
-        return vat;
-    }
-
-    public void setVat(float vat) {
-        this.vat = vat;
-    }
-
-    public Customer getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Order order = (Order) o;
-        return id == order.id &&
-                Float.compare(order.amount, amount) == 0 &&
-                Float.compare(order.vat, vat) == 0 &&
-                Objects.equals(dateTime, order.dateTime) &&
-                Objects.equals(customer, order.customer);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, dateTime, amount, vat, customer);
-    }
-
-    @Override
-    public String toString() {
-        return "Order{" +
-                "id=" + id +
-                ", dateTime=" + dateTime +
-                ", amount=" + amount +
-                ", customer=" + customer +
-                '}';
+    public float calcTotalVat() {
+        if (this.getItems().size() == 0) {
+            log.warn("There is no order item");
+            return 0f;
+        }
+        float totalVat = 0f;
+        for (OrderItem item : this.getItems()) {
+            totalVat += item.getPrice() * 0.18;
+        }
+        return totalVat;
     }
 }
