@@ -18,7 +18,6 @@ public class Customer {
 
     public String placeOrder() {
         return "Musteri: " + this.toString() + " bir siparis olusturdu.";
-
     }
 
     public String getFirstName() {
